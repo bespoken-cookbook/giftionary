@@ -1,0 +1,29 @@
+{
+  "name": "pictogiphy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "alexa-sdk": "^1.0.12",
+    "bespoken-tools": "^1.0.7",
+    "dotenv": "^4.0.0",
+    "giphy-api": "^1.2.7"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jest": "^20.0.3",
+    "eslint-plugin-node": "^5.1.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-spellcheck": "0.0.8",
+    "eslint-plugin-standard": "^3.0.1",
+    "jest": "^20.0.4",
+    "virtual-alexa": "^0.3.0"
+  }
+}

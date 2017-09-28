@@ -1,0 +1,63 @@
+{
+    "extends": "eslint:recommended",
+    "env": {
+        "es6": true,
+        "jest/globals": true,
+        "node": true
+    },
+    "plugins": [
+        "jest", "spellcheck"
+    ],
+    "rules": {
+        "no-console": "off",
+        "no-var": "error",
+        "quotes": ["error", "double"],
+        "sort-keys": ["error", "asc", {"caseSensitive": true, "natural": false}],
+        "spellcheck/spell-checker": [2,
+            {
+                "comments": true,
+                "strings": true,
+                "identifiers": true,
+                "lang": "en_US",
+                "skipWords": [
+                    "accessor",
+                    "alexa",
+                    "aff",
+                    "api",
+                    "br",
+                    "bst",
+                    "dict",
+                    "dotenv",
+                    "fmt",
+                    "fs",
+                    "gif",
+                    "gifs",
+                    "giftionary",
+                    "giphy",
+                    "http",
+                    "https",
+                    "hunspellchecker",
+                    "hunspell",
+                    "jpeg",
+                    "js",
+                    "logless",
+                    "renderer",
+                    "reprompt",
+                    "sdk",
+                    "skillbot",
+                    "src",
+                    "ssml",
+                    "stringify",
+                    "txt",
+                    "unhandled",
+                    "utils"
+                ],
+                "skipIfMatch": [
+                    "http://[^s]*",
+                    "https://[^s]*",
+                    "^[-\\w]+\/[-\\w\\.]+$" //For MIME Types
+                ]
+            }
+        ]
+    }
+}
