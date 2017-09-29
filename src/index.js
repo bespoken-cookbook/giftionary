@@ -9,6 +9,7 @@ let APP_ID;
 const giphy = require("./giphy-api");
 const giphyAPI = new giphy.GiphyAPI(process.env.GIPHY_API_KEY);
 const termGenerator = require("./term-generator");
+const users = [];
 
 let states = {
     DONE_MODE: "DONE_MODE", // User is trying to guess the number.
@@ -40,8 +41,16 @@ module.exports.handler = bst.Logless.capture(process.env.LOGLESS_KEY, alexaFunct
 
 const newSessionHandlers = {
     "LaunchRequest": function () {
-        this.handler.state = states.START_MODE;
-        this.emitWithState("Play");
+        const userID = this.event.session.user.userId;
+        const newUser = !users.includes(userID);
+        if (newUser) {
+            this.handler.state = states.HELP_MODE;
+            this.emitWithState("AMAZON.HelpIntent", true);
+        } else {
+            this.handler.state = states.START_MODE;
+            this.emitWithState("Play");
+        }
+
     },
     "Play": function () {
         this.handler.state = states.START_MODE;
@@ -229,9 +238,9 @@ const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
         this.emitWithState("AMAZON.StopIntent");
     },
     "AMAZON.YesIntent": function() {
-        this.handler.state = states.PLAY_MODE;
+        this.handler.state = states.START_MODE;
         this.emitWithState("Play", true);
-    },
+    }
 });
 
 const exitHandler = Alexa.CreateStateHandler(states.EXIT_MODE, {

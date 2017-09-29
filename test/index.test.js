@@ -8,7 +8,7 @@ const alexa = virtualAlexa.VirtualAlexa.Builder()
 
 describe("Giftionary Tests", () => {
     test("Plays once", (done) => {
-        alexa.launch().then((payload) => {
+        alexa.utter("get started").then((payload) => {
             expect(payload.response.outputSpeech.ssml).toContain("What is the search term for it");
             return alexa.utter("incorrect guess");
 
@@ -31,13 +31,13 @@ describe("Giftionary Tests", () => {
         });
     });
 
-    test("Launches and get helps", (done) => {
+    test("Launches and plays", (done) => {
         alexa.launch().then((payload) => {
-            expect(payload.response.outputSpeech.ssml).toContain("What is the search term for it");
-            return alexa.utter("help");
+            expect(payload.response.outputSpeech.ssml).toContain("We show you images we got from Giphy");
+            return alexa.utter("yes");
 
         }).then((payload) => {
-            expect(payload.response.outputSpeech.ssml).toContain("Take a guess at the image displayed");
+            expect(payload.response.outputSpeech.ssml).toContain("Take a look at this image");
             return alexa.utter("cancel");
 
         }).then((payload) => {
@@ -48,8 +48,27 @@ describe("Giftionary Tests", () => {
         });
     });
 
+    test("Plays and get helps", (done) => {
+        alexa.utter("get started").then((payload) => {
+                expect(payload.response.outputSpeech.ssml).toContain("Take a look at this image");
+                return alexa.utter("help");
+
+            }).then((payload) => {
+                expect(payload.response.outputSpeech.ssml).toContain("Take a guess at the image displayed");
+                return alexa.utter("cancel");
+
+            }).then((payload) => {
+                expect(payload.response.outputSpeech.ssml).toContain("Goodbye");
+                expect(payload.response.shouldEndSession).toBe(true);
+                done();
+
+            });
+
+
+    });
+
     test("Cancels", (done) => {
-        alexa.launch().then((payload) => {
+        alexa.utter("get started").then((payload) => {
             expect(payload.response.outputSpeech.ssml).toContain("What is the search term for it");
             return alexa.utter("cancel");
 
