@@ -31,18 +31,31 @@ describe("Giftionary Tests", () => {
         });
     });
 
-    test("Launch and get help", (done) => {
+    test("Launches and get helps", (done) => {
         alexa.launch().then((payload) => {
             expect(payload.response.outputSpeech.ssml).toContain("What is the search term for it");
-            return alexa.filter((request) => {
-                console.log("Request: " + request);
-            }).utter("help");
+            return alexa.utter("help");
 
         }).then((payload) => {
             expect(payload.response.outputSpeech.ssml).toContain("Take a guess at the image displayed");
-            return alexa.utter("incorrect guess");
+            return alexa.utter("cancel");
 
-        }).then(() => {
+        }).then((payload) => {
+            expect(payload.response.outputSpeech.ssml).toContain("Goodbye");
+            expect(payload.response.shouldEndSession).toBe(true);
+            done();
+
+        });
+    });
+
+    test("Cancels", (done) => {
+        alexa.launch().then((payload) => {
+            expect(payload.response.outputSpeech.ssml).toContain("What is the search term for it");
+            return alexa.utter("cancel");
+
+        }).then((payload) => {
+            expect(payload.response.outputSpeech.ssml).toContain("Goodbye");
+            expect(payload.response.shouldEndSession).toBe(true);
             done();
 
         });

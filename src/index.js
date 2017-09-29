@@ -12,10 +12,11 @@ const termGenerator = require("./term-generator");
 
 let states = {
     DONE_MODE: "DONE_MODE", // User is trying to guess the number.
+    EXIT_MODE: "EXIT_MODE", // User is trying to exit
     GUESS_MODE: "GUESS_MODE", // User is trying to guess the number.
-    HELP_MODE: "HELP_MODE", // User is trying to guess the number.
-    PLAY_AGAIN_MODE: "PLAY_AGAIN_MODE", // User is trying to guess the number.
-    START_MODE: "START_MODE", // User is trying to guess the number.
+    HELP_MODE: "HELP_MODE", // User needs help.
+    PLAY_AGAIN_MODE: "PLAY_AGAIN_MODE", // User wants to play again.
+    START_MODE: "START_MODE", // User is starting out.
 };
 
 termGenerator.load();
@@ -25,7 +26,13 @@ const alexaFunction = function(event, context) {
     alexa.appId = APP_ID;
     // To enable string internationalization (i18n) features, set a resources object.
     // alexa.resources = languageString;
-    alexa.registerHandlers(newSessionHandlers, startHandler, guessHandler, playAgainHandler, helpHandler, doneHandler);
+    alexa.registerHandlers(newSessionHandlers,
+        exitHandler,
+        startHandler,
+        guessHandler,
+        playAgainHandler,
+        helpHandler,
+        doneHandler);
     alexa.execute();
 };
 
@@ -46,9 +53,17 @@ const newSessionHandlers = {
 };
 
 const startHandler = Alexa.CreateStateHandler(states.START_MODE, {
+    "AMAZON.CancelIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.HelpIntent": function() {
         this.handler.state = states.HELP_MODE;
         this.emitWithState("AMAZON.HelpIntent");
+    },
+    "AMAZON.StopIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
     },
     "Play": function () {
         const term = termGenerator.newTerm();
@@ -101,9 +116,17 @@ const startHandler = Alexa.CreateStateHandler(states.START_MODE, {
 });
 
 const guessHandler = Alexa.CreateStateHandler(states.GUESS_MODE, {
+    "AMAZON.CancelIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.HelpIntent": function() {
         this.emit(":ask", "Take a guess at the image displayed. Open your Alexa app on your phone to see the card. " +
             "Go ahead and take a guess!");
+    },
+    "AMAZON.StopIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
     },
     "GiveUp": function () {
         const term = this.attributes["term"];
@@ -143,6 +166,10 @@ const guessHandler = Alexa.CreateStateHandler(states.GUESS_MODE, {
 });
 
 const playAgainHandler = Alexa.CreateStateHandler(states.PLAY_AGAIN_MODE, {
+    "AMAZON.CancelIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.NoIntent": function() {
         this.handler.state = states.DONE_MODE;
         this.emitWithState("Done");
@@ -151,6 +178,10 @@ const playAgainHandler = Alexa.CreateStateHandler(states.PLAY_AGAIN_MODE, {
     //     this.handler.state = GAME_STATES.START;
     //     this.emitWithState("StartGame", true);
     // },
+    "AMAZON.StopIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.YesIntent": function() {
         this.handler.state = states.START_MODE;
         this.emitWithState("Play");
@@ -178,6 +209,10 @@ const doneHandler = Alexa.CreateStateHandler(states.DONE_MODE, {
 });
 
 const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
+    "AMAZON.CancelIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.HelpIntent": function () {
         this.emit(":ask", "We show you images we got from Giphy. " +
             "You guess what search term generated them. " +
@@ -189,8 +224,19 @@ const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
         this.handler.state = states.DONE_MODE;
         this.emitWithState("Done", true);
     },
+    "AMAZON.StopIntent": function() {
+        this.handler.state = states.EXIT_MODE;
+        this.emitWithState("AMAZON.StopIntent");
+    },
     "AMAZON.YesIntent": function() {
         this.handler.state = states.PLAY_MODE;
         this.emitWithState("Play", true);
     },
+});
+
+const exitHandler = Alexa.CreateStateHandler(states.EXIT_MODE, {
+    "AMAZON.StopIntent": function() {
+        this.emit(":tell", "Thanks for playing and please come again! Goodbye.");
+    },
+
 });
