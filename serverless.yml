@@ -26,3 +26,6 @@ functions:
     handler: src/index.handler
     events:
       - alexaSkill
+
+plugins:
+  - serverless-plugin-bespoken

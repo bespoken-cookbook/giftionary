@@ -1,22 +1,16 @@
 const Alexa = require("alexa-sdk");
+const AWS = require("aws-sdk");
 const bst = require("bespoken-tools");
-const TextUtils = Alexa.utils.TextUtils;
-const ImageUtils = Alexa.utils.ImageUtils;
-
-require("dotenv").config();
 
 let APP_ID;
 const giphy = require("./giphy-api");
 const giphyAPI = new giphy.GiphyAPI(process.env.GIPHY_API_KEY);
 const termGenerator = require("./term-generator");
-const users = [];
 
 let states = {
-    DONE_MODE: "DONE_MODE", // User is trying to guess the number.
-    EXIT_MODE: "EXIT_MODE", // User is trying to exit
-    GUESS_MODE: "GUESS_MODE", // User is trying to guess the number.
-    HELP_MODE: "HELP_MODE", // User needs help.
-    PLAY_AGAIN_MODE: "PLAY_AGAIN_MODE", // User wants to play again.
+    GUESS_MODE: "GUESS_MODE", // User is trying to guess the number
+    HELP_MODE: "HELP_MODE", // User needs help
+    PLAY_AGAIN_MODE: "PLAY_AGAIN_MODE", // User wants to play again
     START_MODE: "START_MODE", // User is starting out.
 };
 
@@ -25,24 +19,31 @@ termGenerator.load();
 const alexaFunction = function(event, context) {
     const alexa = Alexa.handler(event, context);
     alexa.appId = APP_ID;
-    // To enable string internationalization (i18n) features, set a resources object.
-    // alexa.resources = languageString;
-    alexa.registerHandlers(newSessionHandlers,
-        exitHandler,
-        startHandler,
+
+    // User information is automatically saved to Dynamo - we just set the table name
+    alexa.dynamoDBTableName = "giftionary_user";
+
+    alexa.registerHandlers(introductionHandler,
+        startGameHandler,
         guessHandler,
         playAgainHandler,
-        helpHandler,
-        doneHandler);
+        helpHandler);
     alexa.execute();
 };
 
 module.exports.handler = bst.Logless.capture(process.env.LOGLESS_KEY, alexaFunction);
 
-const newSessionHandlers = {
-    "LaunchRequest": function () {
-        const userID = this.event.session.user.userId;
-        const newUser = !users.includes(userID);
+const introductionHandler = {
+    "NewSession": function () {
+        // Check if this is a new user or not
+        let newUser = false;
+        if(Object.keys(this.attributes).length === 0) {
+            this.attributes["existingUser"] = true;
+            newUser = true;
+        }
+
+        // If this is a new user, tell them about the game
+        // Otherwise, we just start a new game
         if (newUser) {
             this.handler.state = states.HELP_MODE;
             this.emitWithState("AMAZON.HelpIntent", true);
@@ -50,29 +51,19 @@ const newSessionHandlers = {
             this.handler.state = states.START_MODE;
             this.emitWithState("Play");
         }
-
-    },
-    "Play": function () {
-        this.handler.state = states.START_MODE;
-        this.emitWithState("Play");
-    },
-    "SessionEndedRequest": function () {
-        console.log("SessionEndedRequest");
     }
 };
 
-const startHandler = Alexa.CreateStateHandler(states.START_MODE, {
+const startGameHandler = Alexa.CreateStateHandler(states.START_MODE, {
     "AMAZON.CancelIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.HelpIntent": function() {
         this.handler.state = states.HELP_MODE;
         this.emitWithState("AMAZON.HelpIntent");
     },
     "AMAZON.StopIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "Play": function () {
         const term = termGenerator.newTerm();
@@ -88,32 +79,15 @@ const startHandler = Alexa.CreateStateHandler(states.START_MODE, {
                 imageURL = payload.gifURL;
             }
 
-
-            console.log("ImageURL: " + imageURL);
-
             let imageObj = {
                 largeImageUrl: imageURL,
                 smallImageUrl: imageURL,
             };
 
-            const builder = new Alexa.templateBuilders.BodyTemplate6Builder();
-
-            try {
-                let template = builder.setTitle("My BodyTemplate1")
-                    .setBackButtonBehavior("HIDDEN")
-                    .setBackgroundImage(ImageUtils.makeImage(payload.jpegURL))
-                    .setTextContent(TextUtils.makeRichText("Guess the search term!<br/>" +
-                        //"<img src='https://s3.amazonaws.com/giftionary/Poweredby_640px-Black_HorizLogo.png' width='400' height='52'/>"))
-                        "<img src='https://s3.amazonaws.com/giftionary/PoweredBy_200px-Black_HorizLogo.png' width='200' height='26'/>"))
-                    .build();
-                this.response.hint("ask giftionary, is it a *your guess*?");
-                this.response.speak("Take a look at this image <break time='3s' /> What is the search term for it?")
-                    .listen("Take another look <break time='3s' /> what search term did we use?")
-                    .cardRenderer(cardTitle, cardContent, imageObj)
-                    .renderTemplate(template);
-            } catch (e) {
-                console.error(e);
-            }
+            this.response.hint("ask giftionary, is it a *your guess*?");
+            this.response.speak("Take a look at this image <break time='3s' /> What is the search term for it?")
+                .listen("Take another look <break time='3s' /> what search term did we use?")
+                .cardRenderer(cardTitle, cardContent, imageObj);
 
             this.handler.state = states.GUESS_MODE;
             this.emit(":responseReady");
@@ -126,16 +100,14 @@ const startHandler = Alexa.CreateStateHandler(states.START_MODE, {
 
 const guessHandler = Alexa.CreateStateHandler(states.GUESS_MODE, {
     "AMAZON.CancelIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.HelpIntent": function() {
         this.emit(":ask", "Take a guess at the image displayed. Open your Alexa app on your phone to see the card. " +
             "Go ahead and take a guess!");
     },
     "AMAZON.StopIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "GiveUp": function () {
         const term = this.attributes["term"];
@@ -176,20 +148,13 @@ const guessHandler = Alexa.CreateStateHandler(states.GUESS_MODE, {
 
 const playAgainHandler = Alexa.CreateStateHandler(states.PLAY_AGAIN_MODE, {
     "AMAZON.CancelIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.NoIntent": function() {
-        this.handler.state = states.DONE_MODE;
-        this.emitWithState("Done");
+        helpers.exit(this);
     },
-    // "AMAZON.StartOverIntent": function() {
-    //     this.handler.state = GAME_STATES.START;
-    //     this.emitWithState("StartGame", true);
-    // },
     "AMAZON.StopIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.YesIntent": function() {
         this.handler.state = states.START_MODE;
@@ -211,16 +176,9 @@ const playAgainHandler = Alexa.CreateStateHandler(states.PLAY_AGAIN_MODE, {
 
 });
 
-const doneHandler = Alexa.CreateStateHandler(states.DONE_MODE, {
-    "Done": function () {
-        this.emit(":tell", "Thanks for playing! Goodbye.");
-    },
-});
-
 const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
     "AMAZON.CancelIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.HelpIntent": function () {
         this.emit(":ask", "We show you images we got from Giphy. " +
@@ -230,12 +188,10 @@ const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
             "Ready to play?");
     },
     "AMAZON.NoIntent": function() {
-        this.handler.state = states.DONE_MODE;
-        this.emitWithState("Done", true);
+        helpers.exit(this);
     },
     "AMAZON.StopIntent": function() {
-        this.handler.state = states.EXIT_MODE;
-        this.emitWithState("AMAZON.StopIntent");
+        helpers.exit(this);
     },
     "AMAZON.YesIntent": function() {
         this.handler.state = states.START_MODE;
@@ -243,9 +199,15 @@ const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
     }
 });
 
-const exitHandler = Alexa.CreateStateHandler(states.EXIT_MODE, {
-    "AMAZON.StopIntent": function() {
-        this.emit(":tell", "Thanks for playing and please come again! Goodbye.");
+const helpers = {
+    exit: function (handler) {
+        handler.emit(":tell", "Thanks for playing and please come again! Goodbye.");
     },
+    setupDynamo: function() {
+        AWS.config.update({
+            region: "us-east-1"
+        });
+    }
+}
 
-});
+helpers.setupDynamo();
