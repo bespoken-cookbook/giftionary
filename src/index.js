@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const Alexa = require("alexa-sdk");
 const AWS = require("aws-sdk");
 const bst = require("bespoken-tools");
@@ -23,7 +25,7 @@ const alexaFunction = function(event, context) {
     // User information is automatically saved to Dynamo - we just set the table name
     alexa.dynamoDBTableName = "giftionary_user";
 
-    alexa.registerHandlers(introductionHandler,
+    alexa.registerHandlers(newSessionHandler,
         startGameHandler,
         guessHandler,
         playAgainHandler,
@@ -31,9 +33,10 @@ const alexaFunction = function(event, context) {
     alexa.execute();
 };
 
+console.log("LOGLESS_KEY: " + process.env.LOGLESS_KEY);
 module.exports.handler = bst.Logless.capture(process.env.LOGLESS_KEY, alexaFunction);
 
-const introductionHandler = {
+const newSessionHandler = {
     "NewSession": function () {
         // Check if this is a new user or not
         let newUser = false;
@@ -64,6 +67,9 @@ const startGameHandler = Alexa.CreateStateHandler(states.START_MODE, {
     },
     "AMAZON.StopIntent": function() {
         helpers.exit(this);
+    },
+    "NewSession": function () {
+        this.emitWithState("Play");
     },
     "Play": function () {
         const term = termGenerator.newTerm();
@@ -151,6 +157,7 @@ const playAgainHandler = Alexa.CreateStateHandler(states.PLAY_AGAIN_MODE, {
         helpers.exit(this);
     },
     "AMAZON.NoIntent": function() {
+        console.log("PlayAgain.NoIntent");
         helpers.exit(this);
     },
     "AMAZON.StopIntent": function() {
@@ -200,9 +207,11 @@ const helpHandler = Alexa.CreateStateHandler(states.HELP_MODE, {
 });
 
 const helpers = {
-    exit: function (handler) {
-        handler.emit(":tell", "Thanks for playing and please come again! Goodbye.");
+    exit: function (sdk) {
+        sdk.handler.state = "START_MODE";
+        sdk.emit(":tell", "Thanks for playing and please come again! Goodbye.");
     },
+
     setupDynamo: function() {
         AWS.config.update({
             region: "us-east-1"

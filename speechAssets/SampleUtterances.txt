@@ -1,3 +1,5 @@
 Guess is it {Term}
 Guess {Term}
 Play get started
+Play play
+Play play a game
