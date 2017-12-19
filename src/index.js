@@ -78,7 +78,7 @@ const startGameHandler = Alexa.CreateStateHandler(states.START_MODE, {
 
         giphyAPI.search(term).then((payload) => {
             console.log("JSON: " + JSON.stringify(payload, null, 2));
-            let cardTitle = "Giftionary";
+            let cardTitle = "Guess The Gif";
             let cardContent = "Guess the search term for this image!";
             let imageURL = payload.jpegURL;
             if (this.event.skillbot && this.event.skillbot.source === "SLACK") {
@@ -90,7 +90,7 @@ const startGameHandler = Alexa.CreateStateHandler(states.START_MODE, {
                 smallImageUrl: imageURL,
             };
 
-            this.response.hint("ask giftionary, is it a *your guess*?");
+            this.response.hint("ask guess the gif, is it a *your guess*?");
             this.response.speak("Take a look at this image <break time='3s' /> What is the search term for it?")
                 .listen("Take another look <break time='3s' /> what search term did we use?")
                 .cardRenderer(cardTitle, cardContent, imageObj);
