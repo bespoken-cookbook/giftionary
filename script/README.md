@@ -11,7 +11,8 @@ Settng this up [is explained here](http://docs.aws.amazon.com/apigateway/latest/
 If you already have your Lambda, you can skip down to this step in the docs:  
 *Create an API with Lambda Proxy Integration*
 
-You should then have a URL than can directly hit your Lambda.
+You should then have a URL than can directly hit your Lambda. Insert the URL here:  
+https://github.com/bespoken/giftionary/blob/LoadTest/script/load-tester.js#L67
 
 **Requires these packages**  
 expect - For Jasmine style expectations  
