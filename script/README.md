@@ -6,6 +6,13 @@ You can make a copy of this file and use it for testing your own skill.
 **Requires an HTTP endpoint for hitting your skill**  
 If you are using Lambdas, configuring an API Gateway will do the trick.
 
+Settng this up [is explained here](http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-create-api-as-simple-proxy-for-lambda.html).  
+
+If you already have your Lambda, you can skip down to this step in the docs:  
+*Create an API with Lambda Proxy Integration*
+
+You should then have a URL than can directly hit your Lambda.
+
 **Requires these packages**  
 expect - For Jasmine style expectations  
 virtual-alexa - For generating JSON payloads for testing
