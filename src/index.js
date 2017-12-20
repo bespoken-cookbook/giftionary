@@ -92,7 +92,9 @@ const startGameHandler = Alexa.CreateStateHandler(states.START_MODE, {
 
             this.response.hint("ask guess the gif, is it a *your guess*?");
             this.response.speak("Take a look at this image <break time='3s' /> What is the search term for it?")
-                .listen("Take another look <break time='3s' /> what search term did we use?")
+                .listen("Take another look - " +
+                    "remember if you are not on the Echo Show, open the Alexa app on your phone" +
+                    " <break time='3s' /> what search term did we use?")
                 .cardRenderer(cardTitle, cardContent, imageObj);
 
             this.handler.state = states.GUESS_MODE;
