@@ -29,5 +29,13 @@ const TEST_START = Date.now(); // The start time for the tests as a whole
 
 Replace the `test` method with particular test sequence for your skill.
 
+## Running It  
+From the command-line, just enter:  
+```
+node script/load-tester.js
+```
+
+The tests will run, and summary data will be presented at the end.
+
 ## What's Next
 We may turn this into it's own project. Feedback on what is useful here, and what else is needed, is appreciated.
