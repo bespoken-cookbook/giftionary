@@ -28,3 +28,6 @@ const TEST_START = Date.now(); // The start time for the tests as a whole
 ```
 
 Replace the `test` method with particular test sequence for your skill.
+
+## What's Next
+We may turn this into it's own project. Feedback on what is useful here, and what else is needed, is appreciated.
