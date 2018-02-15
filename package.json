@@ -14,7 +14,7 @@
     "collectCoverage": true
   },
   "dependencies": {
-    "alexa-sdk": "^1.0.12",
+    "alexa-sdk": "^1.0.25",
     "bespoken-tools": "^1.0.7",
     "dotenv": "^4.0.0",
     "giphy-api": "^1.2.7"
@@ -30,7 +30,7 @@
     "eslint-plugin-spellcheck": "0.0.8",
     "eslint-plugin-standard": "^3.0.1",
     "jest": "^20.0.4",
-    "mock-alexa-dynamo": "^0.1.0",
+    "mock-alexa-dynamo": "0.2.1",
     "serverless-plugin-bespoken": "0.0.9",
     "virtual-alexa": "^0.3.9"
   }
