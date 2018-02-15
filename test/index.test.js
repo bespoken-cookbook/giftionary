@@ -1,4 +1,5 @@
 require("dotenv").config();
+
 const virtualAlexa = require("virtual-alexa");
 let alexa = virtualAlexa.VirtualAlexa.Builder()
     .handler("src/index.handler") // Lambda function file and name
@@ -9,6 +10,10 @@ let alexa = virtualAlexa.VirtualAlexa.Builder()
 describe("Giftionary Tests", () => {
     beforeEach(() => {
         require("mock-alexa-dynamo").enable();
+    });
+
+    afterEach(() => {
+        require("mock-alexa-dynamo").reset();
     });
 
     test("Plays once", (done) => {
